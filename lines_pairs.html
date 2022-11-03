@@ -98,11 +98,10 @@ function turnIntoArray(dataDict){
 	return sorted
 }
 
-Promise.all([d3.json('../inUse_keys.json'),d3.json(root+fileName)])
+Promise.all([d3.json(root+fileName)])
 			.then(function(data){
 				//console.log(data)
-				var keys = data[0]
-				var all = data[1]
+				var all = data[0]
 				
 				//console.log(all)
 				
