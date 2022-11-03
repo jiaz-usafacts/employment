@@ -1,0 +1,67 @@
+var labelDict = {
+"PRWKSCH":{"question":"LABOR FORCE BY TIME WORKED OR LOST",
+"keys":{"0":"NOT IN LABOR FORCE",
+	"1":"AT WORK",	
+	"2":"WITH JOB, NOT AT WORK",
+	"3":"UNEMPLOYED, SEEKS FT",
+	"4":"UNEMPLOYED, SEEKS PT"}
+},
+"PTDTRACE":{
+	"question":"RACE",
+	"keys":{
+		"1":"White Only",				
+		"2":"Black Only",					 
+		"3":"American Indian, Alaskan Native Only",		   
+		"4":"Asian Only",			 
+		"5":"Hawaiian/Pacific Islander Only",
+		"6":"2 races"
+	}
+},
+"PEEDUCA":{"question":"Highest Education",
+"keys":{"31":"LESS THAN 1ST GRADE",
+	"32":"1ST, 2ND, 3RD OR 4TH GRADE",
+	"33":"5TH OR 6TH GRADE",
+	"34":"7TH OR 8TH GRADE",
+	"35":"9TH GRADE",
+	"36":"10TH GRADE",
+	"37":"11TH GRADE",
+	"38":"12TH GRADE NO DIPLOMA",
+	"39":"HIGH SCHOOL GRAD-DIPLOMA OR EQUIV (GED)",
+	"40":"SOME COLLEGE BUT NO DEGREE",
+	"41":"ASSOCIATE DEGREE-OCCUPATIONAL/VOCATIONAL",
+	"42":"ASSOCIATE DEGREE-ACADEMIC PROGRAM",
+	"43":"BACHELOR'S DEGREE (EX: BA, AB, BS)",
+	"44":"MASTER'S DEGREE (EX: MA, MS, MEng, MEd, MSW)",
+	"45":"PROFESSIONAL SCHOOL DEG (EX: MD, DDS, DVM)",
+	"46":"DOCTORATE DEGREE (EX: PhD, EdD)"}
+},
+"PRTAGE":{"question":"PERSONS AGE","keys":"numerical"},
+
+"PESEX":{"question":"Sex",
+	"keys":{
+		"1":"MALE",
+		"2":"FEMALE"}},
+"HRMONTH":{"question":"MONTH OF INTERVIEW","keys":"numerical"},
+"HRYEAR4":{"question":"YEAR OF INTERVIEW","keys":"numerical"},
+				
+"PRCHLD":{"question":"PRESENCE OF OWN CHILDREN <18 YEARS OF AGE BY SELECTED AGE GROUP",
+	"keys":{"-1":"NIU (Not a parent)",
+			"0":"No own children under 18 years of age",
+			"1":"0- 2 years of age",
+			"2":"3- 5 years of age",
+			"3":"6-13 years of age",
+			"4":"14-17 years of age",
+			"5":"Own children  0- 2 and  3- 5 years of age (none  6-17)",
+			"6":"Own children  0- 2 and  6-13 years of age (none  3- 5 or 14-17)",
+			"7":"Own children  0- 2 and 14-17 years of age (none  3-13)",
+			"8":"Own children  3- 5 and  6-13 years of age (none  0- 2 or 14-17)",
+ 			"9":"Own children  3- 5 and 14-17 years of age (none  0- 2 or  6-13)",
+			"10":"Own children  6-13 and 14-17 years of age (none  0- 5)",
+			"11":"Own children  0- 2,  3- 5, and  6-13 years of age (none 14-17)",
+			"12":"Own children  0- 2,  3- 5, and 14-17 years of age (none 6-13)",
+			"13":"Own children  0- 2,  6-13, and 14-17 years of age (none 3- 5)",
+			"14":"Own children  3- 5,  6-13, and 14-17 years of age (none  0- 2)",
+			"15":"Own children  from all age groups"}
+		},
+"PRNMCHLD":{"question":"Number of own children <18 years of age",
+	"keys":"numerical"}}

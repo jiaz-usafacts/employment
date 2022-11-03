@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>who works</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<script type="text/javascript" src="labelDict.js"></script>
+		<style type="text/css">
+			/* No style rules here yet */		
+		</style>
+	</head>
+	<body>
+ 		data since 1994 for
+		- population 16 or above
+		- in laborforce
+		<div id="chart">chart</div>
+		<script type="text/javascript">
+			
+			var root = "../"
+
+//get all
+// get dictionary of each step
+// draw comparison pairs
+//add dots for highs and lows
+//get difference fill in
+//draft a text
+//get counts
+//add young vs old children?
+			
+ 	//change x scale to date scale
+	   	 var classes = {}
+
+ var fileName = "combinedJsons.json"
+		 var colors = ["#E3007D","#00906E","#249EDC","#015193","#249EDC","#00347B","#E62790","#E390D6",
+				 "#851C6A","#F44336","#E57373","#D32F2F","#FF9800","#FFB74D", "#F57C00","#2197F3","#64B5F6","#1976D2","#4CAF50","#81C784","#388E3C"]
+		 
+ 
+function translateFileName(fileName){
+ 	var fields = fileName.replace("16-A_inWorkforce_","").replace(".json","").split("_")
+	 var label = ""
+	 for(var f in fields){
+	 	var field = fields[f].split("-")[0].toUpperCase()
+		 var fieldLabel = labelDict[field].question
+		 
+		 var value = fields[f].split("-")[1]
+		 if(labelDict[field].keys=="numerical"){
+		 	var valueLabel = value
+		 	//console.log(value)
+		 }else{
+			 var valueLabel = labelDict[field].keys[value]
+		 }
+		 
+		 var side = fields[f].split("-")[2]
+		 if(side =="A"){
+		 	var sideLabel = ""+valueLabel+" or more"
+		 }else{
+		 	var sideLabel = "less than "+valueLabel
+		 }
+		 if(field=="PESEX"){
+			 if(side =="A"){
+			 	var sideLabel = "Female"
+			 }else{
+			 	var sideLabel = "Male"
+			 }
+		 }
+		 	label+=sideLabel
+		 
+	 }
+	 return label
+}
+function turnIntoArray(dataDict){
+	var formatted = []
+	for(var i in dataDict){
+		//console.log(dataDict[i])
+		var year = i.split("_")[0]
+		if(year.length==2){
+			year = "19"+year
+		}
+		var month = i.split("_")[1]
+		var newEntry = dataDict[i]
+		newEntry["date"]=year+"_"+month
+		formatted.push(newEntry)
+	}
+	var sorted = formatted.sort(function(a,b){
+		//console.log(a,b)
+		return new Date(a["date"].replace("_","-"))-new Date(b["date"].replace("_","-"))
+	})
+	return sorted
+}
+
+Promise.all([d3.json('../inUse_keys.json'),d3.json(root+fileName)])
+			.then(function(data){
+				//console.log(data)
+				var keys = data[0]
+				var all = data[1]
+				
+				//console.log(all)
+				
+				var w = 800
+				var h = 500
+				var p = 30
+	
+				var pScale = d3.scaleLinear().domain([0,1]).range([h,0])
+				
+				
+				
+				//var xScale = d3.scaleLinear().domain([0,Object.keys(counts1).length]).range([0,w])
+				var xScale = d3.scaleTime().domain([new Date("1994-1"),new Date("2021-09")]).range([0,w])
+	
+				var xAxis = d3.axisBottom().scale(xScale).ticks(10)
+				.tickFormat(function(d){
+					//console.log(d)
+					return d.getFullYear()+d.getMonth()
+				})
+				var yAxis = d3.axisLeft().scale(pScale).ticks(4)
+		
+				
+				
+				
+				//var title = d3.select("#chart").append("div").html(translateFileName(fileName))
+				var svg = d3.select("#chart")
+				.append('svg')
+				.attr("width",w+p*10)
+				.attr("height",h+p*2)
+				
+				svg.append("g")
+				.call(xAxis)
+				.attr("transform","translate("+p+","+(h+p)+")")
+				
+				svg.append("g")
+				.call(yAxis)
+				.attr("transform","translate("+p+","+p+")")
+				
+				
+				
+				var arrays = {}
+				var index = 0
+				for(var a in all){
+					
+					arrays[a]=turnIntoArray(all[a])
+					var color = colors[index%colors.length]
+					line(arrays[a],svg,pScale,xScale,a,color,p,1,index)
+					index+=1
+					//break
+				}
+
+			})
+
+function getRolling(data){
+		//
+	console.log(data[0].date)
+	var dataDict = {}
+	for(var d in data){
+		dataDict[data[d].date]=data[d]
+	}
+	//console.log(dataDict)
+	var roll = 12
+	// var year = parseInt(date.split("_")[0])
+	// var month = parseInt(date.split("_")[1])
+	//console.log(data)
+	var maxYear = parseInt(data[data.length-1]['date'].split("_")[0])
+	var maxMonth = parseInt(data[data.length-1]['date'].split("_")[1])
+	
+	//console.log(maxYear,maxMonth)
+	
+	var formatted = []
+	
+	for(var d in data){
+		//console.log(d)
+		//console.log(data[d])
+		var date = data[d].date
+		var year = parseInt(date.split("_")[0])
+		var month = parseInt(date.split("_")[1])
+		
+		var endMonth = month+roll
+		var endYear = year
+		if(endMonth>12){
+			endMonth=endMonth-12
+			endYear+=1
+		}
+		if(endMonth<= maxMonth && endYear<=maxYear){
+			var totalSum = 0
+			var employedSum = 0
+			//console.log(year,month)
+			for(var i =0; i<12;i++){
+				var newYear = year
+				var newMonth = month+i
+				if(newMonth>12){
+					newMonth = newMonth-12
+					newYear+=1
+				}
+				var entry = dataDict[newYear+"_"+newMonth]
+				//console.log(newYear+"_"+newMonth,entry)
+				totalSum +=entry.total
+				employedSum +=entry.employed
+			}
+		//	console.log(totalSum,employedSum)
+			var percentEmployed = employedSum/totalSum
+		//	console.log(percentEmployed)
+			var formattedDate = year+"_"+month
+			formatted.push({date:formattedDate,rolling:percentEmployed})
+			
+		}
+	}
+	return formatted
+}
+
+function line(data,svg,pScale,xScale,className,color,p,lineWight,order){
+	var formatted = []
+	
+	var averages = getRolling(data)
+	console.log(averages)
+	
+	svg.append("text")
+	.text(className)
+	.attr("x",xScale(new Date(data[data.length-1]['date'].replace("_","-"))))
+	.attr("y",function(){
+		var endEntry = data[data.length-1]
+		return pScale(endEntry["employed"]/endEntry["total"])
+	})
+	.attr("fill",color)
+	.attr("transform","translate("+p+","+p+")")
+	.attr("class",className)
+ .on("mouseover",function(d){
+ 	var thisClass = d3.select(this).attr("class")
+	 d3.selectAll("text").attr("opacity",.1)
+	 d3.selectAll("path").attr("opacity",.1)
+	 d3.selectAll("."+thisClass).attr("opacity",1)
+ })
+	
+	//this is the rolling line
+	var line = d3.line()
+	.x(function(d,i){
+		//console.log(d.replace("_","-"))
+		return xScale(new Date(d['date'].replace("_","-")))
+	})
+	.y(function(d,i){
+		//console.log(d)
+		var p = d["rolling"]
+
+		return pScale(p)
+	})
+
+	svg.selectAll(".roll_"+className)
+	.data([averages])
+	.enter()
+	.append("path")
+	.attr("class",className)
+	.attr("d",line)
+	.attr("fill","none")
+	.attr("stroke",color)
+	.attr("stroke-width",1)
+	.attr("transform","translate("+p+","+p+")")
+	.attr("opacity",lineWight)
+ .on("mouseover",function(d){
+ 	var thisClass = d3.select(this).attr("class")
+	 d3.selectAll("text").attr("opacity",.1)
+	 d3.selectAll("path").attr("opacity",.1)
+	 d3.selectAll("."+thisClass).attr("opacity",1)
+ })
+	
+	
+	//this is the regular line
+	 var line = d3.line()
+	 .x(function(d,i){
+	 	//console.log(d.replace("_","-"))
+	 	return xScale(new Date(d['date'].replace("_","-")))
+	 })
+	 .y(function(d,i){
+	 	//console.log(d)
+	 	var p = d["employed"]/d["total"]
+	 	return pScale(p)
+	 })
+	 
+	
+	 svg.selectAll(".original_"+className)
+	 .data([data])
+	 .enter()
+	 .append("path")
+	 .attr("class",className)
+	 .attr("d",line)
+	 .attr("fill","none")
+	 .attr("stroke",color)
+	 .attr("transform","translate("+p+","+p+")")
+	 //.attr("opacity",.5)
+	 .style("stroke-dasharray","1,2")
+	 .on("mouseover",function(d){
+	 	var thisClass = d3.select(this).attr("class")
+	 	d3.selectAll("text").attr("opacity",.1)
+		 d3.selectAll("path").attr("opacity",.1)
+		 d3.selectAll("."+thisClass).attr("opacity",1)
+	 })
+	
+}
+			
+
+			
+		</script>
+	</body>
+</html>

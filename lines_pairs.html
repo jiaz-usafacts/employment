@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>who works</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<script type="text/javascript" src="labelDict.js"></script>
+		<style type="text/css">
+			/* No style rules here yet */		
+		</style>
+	</head>
+	<body>
+ 		data since 1994 for
+		- population 16 or above
+		- in laborforce
+		<div id="chart">chart</div>
+		<script type="text/javascript">
+			
+			var root = ""
+
+//get all
+// get dictionary of each step
+// draw comparison pairs
+//add dots for highs and lows
+//get difference fill in
+//draft a text
+//get counts
+//add young vs old children?
+			
+ 	//change x scale to date scale
+	   	 var classes = {}
+
+ var fileName = "combinedJsons.json"
+		 var colors = ["#E3007D","#00906E","#249EDC","#015193","#249EDC","#00347B","#E62790","#E390D6",
+				 "#851C6A","#F44336","#E57373","#D32F2F","#FF9800","#FFB74D", "#F57C00","#2197F3","#64B5F6","#1976D2","#4CAF50","#81C784","#388E3C"]
+		 
+translateFileName('prtage-50-9999')
+translateFileName('prtage-0-99')
+		 
+function translateFileName(fileName){
+	//console.log(fileName)
+	var field = fileName.split("-")[0].toUpperCase()
+	var startValue = fileName.split("-")[1]
+	var endValue = fileName.split("-")[2]
+	
+	
+	
+	
+	if(endValue=="9999"){
+		var endLabel = "and up"
+		if( labelDict[field].keys=="numerical"){
+			var startLabel = startValue
+		}else{
+			var startLabel = labelDict[field].keys[startValue]
+		}
+	}else if(startValue=="0"){
+		var startLabel = "<"
+		if( labelDict[field].keys=="numerical"){
+			var endLabel =" - "+ endValue
+		}else{
+			var endLabel = labelDict[field].keys[endValue]
+		}
+	}else{
+		if( labelDict[field].keys=="numerical"){
+			var startLabel = startValue
+			var endLabel = " - "+ endValue
+		}else{
+			var endLabel = labelDict[field].keys[endValue]
+			var startLabel = labelDict[field].keys[startValue]	
+		}
+	}
+	
+	if(startValue==endValue && startValue!="0"){
+		var label = startLabel
+	}else{
+		var label = startLabel+" "+endLabel
+	}
+	 return label
+}
+
+function turnIntoArray(dataDict){
+	var formatted = []
+	for(var i in dataDict){
+		//console.log(dataDict[i])
+		var year = i.split("_")[0]
+		if(year.length==2){
+			year = "19"+year
+		}
+		var month = i.split("_")[1]
+		var newEntry = dataDict[i]
+		newEntry["date"]=year+"_"+month
+		formatted.push(newEntry)
+	}
+	var sorted = formatted.sort(function(a,b){
+		//console.log(a,b)
+		return new Date(a["date"].replace("_","-"))-new Date(b["date"].replace("_","-"))
+	})
+	return sorted
+}
+
+Promise.all([d3.json('../inUse_keys.json'),d3.json(root+fileName)])
+			.then(function(data){
+				//console.log(data)
+				var keys = data[0]
+				var all = data[1]
+				
+				//console.log(all)
+				
+				var w = 400
+				var h = 600
+				var p = 40
+	
+				var pScale = d3.scaleLinear().domain([0.3,.9]).range([h,0])
+				
+				
+				
+				//var xScale = d3.scaleLinear().domain([0,Object.keys(counts1).length]).range([0,w])
+				var xScale = d3.scaleTime().domain([new Date("1994-1"),new Date("2021-09")]).range([0,w])
+	
+				var xAxis = d3.axisBottom().scale(xScale).ticks(10)
+				.tickFormat(function(d){
+					//console.log(d)
+					return d.getFullYear()+d.getMonth()
+				})
+				var yAxis = d3.axisLeft().scale(pScale).ticks(4)
+		
+				
+				
+				
+				//var title = d3.select("#chart").append("div").html(translateFileName(fileName))
+			
+				
+				
+				var arrays = {}
+				var index = 0
+				for(var a in all){
+				//	console.log(a)
+					arrays[a]=turnIntoArray(all[a])
+					var color = colors[index%colors.length]
+					//line(arrays[a],svg,pScale,xScale,a,color,p,1,index)
+					index+=1
+					//break
+				}
+				
+				var groups = makeGroups(all)
+				for(var g in groups){
+					var colorIndex = 0
+					//console.log(groups[g])
+					var chartDiv = d3.select("#chart").append("div")
+					
+					var title = labelDict[g.toUpperCase()].question
+					
+					chartDiv.append("div").html(title)
+					var svg = chartDiv.append('svg')
+					.attr("width",w+p*12)
+					.attr("height",h+p*2)
+					
+					svg.append("g")
+					.call(xAxis)
+					.attr("transform","translate("+p+","+(h+p)+")")
+				
+					svg.append("g")
+					.call(yAxis)
+					.attr("transform","translate("+p+","+p+")")
+				
+					//console.log(groups[g])
+					var lines = groups[g]
+					for(var l in lines){
+						color = colors[colorIndex]
+						colorIndex+=1
+						var lineClass = lines[l]
+						var lineData  = arrays[lineClass]
+						line(lineData,svg,pScale,xScale,lineClass,color,p,1,1)
+					}
+					line(arrays['prtage-16-A'],svg,pScale,xScale,'prtage-16-A','black',p,1,2)
+				}
+				
+
+			})
+
+function makeGroups(keys){
+	//console.log(keys)
+	var groups = {}
+	for(var k in keys){
+		//console.log(k)
+		if(k!='prtage-16-A'){
+			var group = k.split("_")[1].split("-")[0]
+			//var group = k.slice(0,-1)
+			//console.log(group)
+			if(Object.keys(groups).indexOf(group)==-1){
+				groups[group]=[]
+				groups[group].push(k)
+			}else{
+				groups[group].push(k)
+			}
+		}
+	
+	}
+	//console.log(groups)
+	return groups
+}
+
+function getRolling(data){
+		//
+	//console.log(data[0].date)
+	var dataDict = {}
+	for(var d in data){
+		dataDict[data[d].date]=data[d]
+	}
+	//console.log(dataDict)
+	var roll = 12
+	// var year = parseInt(date.split("_")[0])
+	// var month = parseInt(date.split("_")[1])
+	//console.log(data)
+	var maxYear = parseInt(data[data.length-1]['date'].split("_")[0])
+	var maxMonth = parseInt(data[data.length-1]['date'].split("_")[1])
+	
+	//console.log(maxYear,maxMonth)
+	
+	var formatted = []
+	
+	for(var d in data){
+		//console.log(d)
+		//console.log(data[d])
+		var date = data[d].date
+		var year = parseInt(date.split("_")[0])
+		var month = parseInt(date.split("_")[1])
+		
+		var endMonth = month+roll
+		var endYear = year
+		if(endMonth>12){
+			endMonth=endMonth-12
+			endYear+=1
+		}
+		if(endMonth<=maxMonth && endYear<=maxYear){
+			var totalSum = 0
+			var employedSum = 0
+			//console.log(year,month)
+			for(var i =0; i<roll;i++){
+				var newYear = year
+				var newMonth = month+i
+				if(newMonth>12){
+					newMonth = newMonth-12
+					newYear+=1
+				}
+				var entry = dataDict[newYear+"_"+newMonth]
+			//	console.log(newYear+"_"+newMonth,entry)
+				if(entry!=undefined){
+
+				totalSum +=entry.total
+				employedSum +=entry.employed
+				}
+			}
+		//	console.log(totalSum,employedSum)
+			var percentEmployed = employedSum/totalSum
+		//	console.log(percentEmployed)
+			var formattedDate = endYear+"_"+endMonth
+			formatted.push({date:formattedDate,rolling:percentEmployed})
+			
+		}
+	}
+	return formatted
+}
+
+function line(data,svg,pScale,xScale,className,color,p,lineWight,order){
+	var formatted = []
+	
+	var averages = getRolling(data)
+	//console.log(averages)
+	if(className=="prtage-16-A"){
+		var title = "Everyone 16 and over"
+	}else{
+		var title =translateFileName(className.replace("prtage-16-A_",""))
+	}
+	svg.append("text")
+	.text(title)
+	.attr("x",function(){
+		if(className=="prtage-16-A"){
+			return 10
+		}else{
+			return xScale(new Date(data[data.length-1]['date'].replace("_","-")))
+		}
+	}
+		
+	)
+	.attr("y",function(){
+		
+		if(className=="prtage-16-A"){
+			var startEntry = data[0]
+			return pScale(startEntry["employed"]/startEntry["total"])
+			
+		}else{
+			var endEntry = data[data.length-1]
+			return pScale(endEntry["employed"]/endEntry["total"])
+		}
+		
+		
+	})
+	.attr("fill",color)
+	.attr("transform","translate("+p+","+p+")")
+	.attr("class",className)
+
+	
+	//this is the rolling line
+	var line = d3.line()
+	.x(function(d,i){
+		//console.log(d.replace("_","-"))
+		return xScale(new Date(d['date'].replace("_","-")))
+	})
+	.y(function(d,i){
+		//console.log(d)
+		var p = d["rolling"]
+
+		return pScale(p)
+	})
+
+	svg.selectAll(".roll_"+className)
+	.data([averages])
+	.enter()
+	.append("path")
+	.attr("class",className)
+	.attr("d",line)
+	.attr("fill","none")
+	.attr("stroke",color)
+	.attr("stroke-width",1)
+	.attr("transform","translate("+p+","+p+")")
+	.attr("opacity",lineWight)
+
+	
+	
+	//this is the regular line
+	 var line = d3.line()
+	 .x(function(d,i){
+	 	//console.log(d.replace("_","-"))
+	 	return xScale(new Date(d['date'].replace("_","-")))
+	 })
+	 .y(function(d,i){
+	 	//console.log(d)
+	 	var p = d["employed"]/d["total"]
+	 	return pScale(p)
+	 })
+	 
+	
+	 svg.selectAll(".original_"+className)
+	 .data([data])
+	 .enter()
+	 .append("path")
+	 .attr("class",className)
+	 .attr("d",line)
+	 .attr("fill","none")
+	 .attr("stroke",color)
+	 .attr("transform","translate("+p+","+p+")")
+	 //.attr("opacity",.5)
+	 .style("stroke-dasharray","1,2")
+	 
+	
+}
+			
+
+			
+		</script>
+	</body>
+</html>

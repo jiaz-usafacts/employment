@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>who works</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			/* No style rules here yet */		
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+
+Promise.all([d3.json("reasons_30900000.json"),d3.json('../inUse_keys.json')])
+			.then(function(data){
+				//console.log(data)
+				var keys = data[1]
+				var counts = data[0]
+				
+				for(var c in counts){
+					//console.log(c)
+					var keyUpper = c.toUpperCase()
+					//console.log(keyUpper)
+					var keyQuestion = keys[keyUpper].question
+					//console.log(keyQuestion)
+					var keyValues = keys[keyUpper].keys
+					//console.log(keyValues)
+					
+					bars(counts[c],keys[keyUpper])
+					//break
+				}
+			})
+
+function bars(data,keys){
+	
+	console.log(data,keys)
+	//Create SVG element
+	var w = 500
+	var bp =4
+	var bh = 15
+	var p = 20
+	var h = bh*Object.keys(data).length
+	var svg = d3.select("body")
+				.append("svg")
+				.attr("width", w+p*2)
+				.attr("height", h+p*2);
+	
+	svg.append("text").text(keys.question).attr("x",p).attr("y",p-bp)
+				
+	var max = d3.max(Object.keys(data),function(d){
+		if (d!="-1"){
+			return data[d]
+		}
+	})
+	var min = d3.min(Object.keys(data),function(d){return data[d]})
+
+	var barScale = d3.scaleLinear().domain([0,max]).range([0,w])
+	
+	var xAxis = d3.axisBottom().scale(barScale).ticks(5)
+				
+				svg.append("g").call(xAxis)			
+		 	   .attr("transform","translate("+(p)+","+(h+p)+")");
+				
+	svg.selectAll("rect")
+	   .data(Object.keys(data))
+	   .enter()
+	   .append("rect")
+	   .attr("y", function(d, i) {
+	   		return i * (h/ Object.keys(data).length);
+	   })
+	   .attr("x", function(d) {
+	   		return 0//barScale(data[d]);
+	   })
+	   .attr("height", bh-bp)
+	   .attr("width", function(d) {
+	   		return barScale(data[d]);
+	   })
+	   .attr("fill", function(d) {
+			return "gold"
+	   })
+	   .attr("transform","translate("+p+","+p+")");
+
+	svg.selectAll(".labels")
+	   .data(Object.keys(data))
+	   .enter()
+	   .append("text")
+	   .attr("class","label")
+	   .text(function(d) {
+		   if (keys.keys=="numerical"){
+   	   		return d+": "+data[d];
+		   }else{
+			   return keys.keys[d]+": "+data[d];
+		   }
+	   })
+	   .attr("y", function(d, i) {
+	   		return i * bh+bh-bp;
+	   })
+	   .attr("x", function(d) {
+	   		return 0//h - (d * 4) ;
+	   })
+	   .attr("font-family", "sans-serif")
+	   .attr("font-size", "11px")
+	  // .attr("fill", "white")
+	   .attr("transform","translate("+p+","+p+")");
+	   
+				
+				
+				
+				
+			}
+			
+
+			
+		</script>
+	</body>
+</html>
